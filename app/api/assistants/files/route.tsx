@@ -1,8 +1,10 @@
 import { assistantId } from "@/app/assistant-config";
 import { openai } from "@/app/openai";
+import { BlobServiceClient } from '@azure/storage-blob'
 
 // upload file to assistant's vector store
 export async function POST(request) {
+
   const formData = await request.formData(); // process file as FormData
   const file = formData.get("file"); // retrieve the single file from FormData
   const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
@@ -17,11 +19,23 @@ export async function POST(request) {
   await openai.beta.vectorStores.files.create(vectorStoreId, {
     file_id: openaiFile.id,
   });
+
+  //try {
+  //const blobServiceClient = new BlobServiceClient(`https://${process.env.AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/?${process.env.AZURE_STORAGE_ACCOUNT_KEY}`);
+  //const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_STORAGE_CONTAINER_NAME);
+  //const blockBlobClient = containerClient.getBlockBlobClient(openaiFile.id);
+  //const uploadBlobResponse = await blockBlobClient.uploadFile(file.stream());
+  //} catch (error) {
+  //  console.error("Error post blob:", error);
+  //  return new Response("Error post file", { status: 500 });
+  // }
+
   return new Response();
 }
 
 // list files in assistant's vector store
 export async function GET() {
+
   const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
   const fileList = await openai.beta.vectorStores.files.list(vectorStoreId);
 
@@ -39,6 +53,21 @@ export async function GET() {
       };
     })
   );
+
+  //try {
+  //const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
+  //const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_STORAGE_CONTAINER_NAME);
+
+  // let blobList = [];
+  // for await (const blob of containerClient.listBlobsFlat()) {
+  // blobList.push({ name: blob.name, url: `${containerClient.url}/${blob.name}` });
+  // }
+  //return Response.json(blobList);
+  //} catch (error) {
+  //  console.error("Error get blob:", error);
+  //  return new Response("Error get file", { status: 500 });
+  // }
+
   return Response.json(filesArray);
 }
 
@@ -49,6 +78,16 @@ export async function DELETE(request) {
 
   const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
   await openai.beta.vectorStores.files.del(vectorStoreId, fileId); // delete file from vector store
+
+  //try {
+  //const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
+  //const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_STORAGE_CONTAINER_NAME);
+  //const blockBlobClient = containerClient.getBlockBlobClient(openaiFile.id);
+  //await blockBlobClient.delete();
+  //} catch (error) {
+  //  console.error("Error deleting blob:", error);
+  //  return new Response("Error deleting file", { status: 500 });
+  //}
 
   return new Response();
 }
