@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./file-viewer.module.css";
-import { BlobServiceClient } from '@azure/storage-blob';
+import { BlobServiceClient } from '@azure/storage-blob'
 
 const FileViewer = () => {
   const [files, setFiles] = useState([]);
@@ -16,13 +16,17 @@ const FileViewer = () => {
   }, []);
 
   const fetchFiles = async () => {
-    const resp = await fetch("/api/assistants/files", {
-      method: "GET",
-    });
-    const data = await resp.json();
-    setFiles(data);
+    const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
+    const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_STORAGE_CONTAINER_NAME);
+  
+    let blobs = [];
+    for await (const blob of containerClient.listBlobsFlat()) {
+      blobs.push(blob.name);
+    }
+  
+    setFiles(blobs);
   };
-
+  
   const handleFileUpload = async (event) => {
 
     const file = event.target.files[0];
@@ -51,12 +55,22 @@ const FileViewer = () => {
 
   return (
     <div className={styles.fileViewer}>
-      <div
-        className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ""}`}
-    >
-          <div className={styles.title}>Anexe os arquivos aqui <div className={styles.supportedFormats}>
-            Formatos suportados: docx, xlsx, pdf e txt
-          </div> </div>
+      <div className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ""}`}>
+
+        {files.length === 0 ? (
+          <div className={styles.title}>Anexe os arquivos aqui   <div className={styles.supportedFormats}>
+           Formatos suportados: docx, xlsx, pdf e txt
+        </div> </div>
+        ) : (
+          files.map((file) => (
+            <div key={file.file_id} className={styles.fileEntry}>
+              <div className={styles.fileName}>
+                <span className={styles.fileName}>{file.filename}</span>
+                <span className={styles.fileStatus}>{file.status}</span>
+              </div>
+            </div>
+          ))
+        )}
       
       </div>
       <div className={styles.fileUploadContainer}>

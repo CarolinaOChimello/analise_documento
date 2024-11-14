@@ -19,7 +19,13 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "target": "es6",
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ]
   },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]

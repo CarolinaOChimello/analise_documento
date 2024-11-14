@@ -2,6 +2,9 @@
   "name": "assistants-nextjs",
   "version": "0.1.0",
   "private": true,
+  "presets": [
+    "next/babel"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,8 +13,6 @@
   },
   "dependencies": {
     "@azure/storage-blob": "^12.25.0",
-    "@vercel/blob": "^0.26.0",
-    "formidable": "^3.5.2",
     "next": "^14.2.16",
     "next-auth": "^4.24.10",
     "openai": "^4.46.0",
@@ -21,6 +22,7 @@
     "uuid": "^11.0.2"
   },
   "devDependencies": {
+    "@types/debug": "^4.1.12",
     "@types/node": "20.12.7",
     "@types/react": "18.2.79",
     "typescript": "5.4.5"
