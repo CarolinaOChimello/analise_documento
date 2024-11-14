@@ -35,12 +35,8 @@ const FileViewer = () => {
 
     if (event.target.files.length < 0) return;
         
-      const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
-      const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
-      const containerName = 'your-container-name';
-
-      const blobServiceClient = new BlobServiceClient(`https://${accountName}.blob.core.windows.net/?${accountKey}`);
-      const containerClient = blobServiceClient.getContainerClient(containerName);
+      const blobServiceClient = new BlobServiceClient(`https://${process.env.AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/?${process.env.AZURE_STORAGE_ACCOUNT_KEY}`);
+      const containerClient = blobServiceClient.getContainerClient(process.env.AZURE_STORAGE_CONTAINER_NAME);
       const blockBlobClient = containerClient.getBlockBlobClient(file.name);
 
       try {
@@ -58,7 +54,7 @@ const FileViewer = () => {
       <div
         className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ""}`}
     >
-          <div className={styles.title}>Anexe os arquivos aqui   <div className={styles.supportedFormats}>
+          <div className={styles.title}>Anexe os arquivos aqui <div className={styles.supportedFormats}>
             Formatos suportados: docx, xlsx, pdf e txt
           </div> </div>
       
