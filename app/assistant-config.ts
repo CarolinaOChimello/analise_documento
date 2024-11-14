@@ -1,5 +1,7 @@
-export let assistantId = ""; // set your assistant ID here
+import { OpenAI } from 'openai';
 
-if (assistantId === "") {
-  assistantId = process.env.OPENAI_ASSISTANT_ID;
-}
+export let assistantId = process.env.OPENAI_ASSISTANT_ID || "";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+})
