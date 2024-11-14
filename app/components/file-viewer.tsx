@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "./file-viewer.module.css";
-import {v4 as uuidv4} from 'uuid';
+import { BlobServiceClient } from '@azure/storage-blob';
 
 const TrashIcon = () => (
   <svg
@@ -18,6 +18,7 @@ const TrashIcon = () => (
     />
   </svg>
 );
+
 
 const FileViewer = () => {
   const [files, setFiles] = useState([]);
@@ -43,47 +44,53 @@ const FileViewer = () => {
   const handleFileDelete = async (fileId) => {
     await fetch("/api/assistants/files", {
       method: "DELETE",
-      body: JSON.stringify({ fileId}),
-      headers:{
-        'Content-Type':'application/json'
+      body: JSON.stringify({ fileId }),
+      headers: {
+        'Content-Type': 'application/json'
       },
     });
   };
 
   const handleFileUpload = async (event) => {
-   
+
     const file = event.target.files[0];
     const maxSize = 20 * 1024 * 1024; // 20 MB em bytes
 
-    if (file&&file.size > maxSize) {
+    if (file && file.size > maxSize) {
       setErrorMessage('O arquivo é muito grande. O tamanho máximo permitido é de 20 MB.');
       return;
     }
-   
-    const data = new FormData();
+
     if (event.target.files.length < 0) return;
-    data.append("file", event.target.files[0]);
-    await fetch("/api/assistants/files", {
-      method: "POST",
-      body: data,
-    });
+        
+      const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+      const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
+      const containerName = 'your-container-name';
 
-    // Limpa mensagem de erro caso o upload seja bem sucedido
-    setErrorMessage('');
+      const blobServiceClient = new BlobServiceClient(`https://${accountName}.blob.core.windows.net/?${accountKey}`);
+      const containerClient = blobServiceClient.getContainerClient(containerName);
+      const blockBlobClient = containerClient.getBlockBlobClient(file.name);
 
+      try {
+        const uploadBlobResponse = await blockBlobClient.uploadFile(file.data);
+        //return event.status(200).json({ message: 'Upload successful', uploadBlobResponse });
+        return;
+      } catch (error) {
+        //return event.status(500).json({ message: 'Upload failed', error });
+        return;
+      } 
   };
 
   return (
     <div className={styles.fileViewer}>
       <div
-        className={`${styles.filesList} ${
-          files.length !== 0 ? styles.grow : ""
-        }`}
+        className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ""
+          }`}
       >
         {files.length === 0 ? (
           <div className={styles.title}>Anexe os arquivos aqui   <div className={styles.supportedFormats}>
-          Formatos suportados: docx, xlsx, pdf e txt
-        </div> </div>
+            Formatos suportados: docx, xlsx, pdf e txt
+          </div> </div>
         ) : (
           files.map((file) => (
             <div key={file.file_id} className={styles.fileEntry}>
@@ -116,7 +123,7 @@ const FileViewer = () => {
           {errorMessage}
         </div>
       )}
-      </div>
+    </div>
   );
 };
 
