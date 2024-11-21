@@ -104,6 +104,7 @@ const getOrCreateVectorStore = async () => {
   // otherwise, create a new vector store and attatch it to the assistant
   const vectorStore = await openai.beta.vectorStores.create({
     name: "sample-assistant-vector-store",
+    expires_after: null, 
   });
   await openai.beta.assistants.update(assistantId, {
     tool_resources: {
