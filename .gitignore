@@ -39,3 +39,9 @@ openai-v4.29.0-beta.1.tgz
 
 # lauch
 .vscode/launch.json
+
+#Caddy
+Caddyfile
+
+#ecosystem
+ecosystem.config.js

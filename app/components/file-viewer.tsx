@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
+import NProgress from 'nprogress';
 import styles from "./file-viewer.module.css";
+import 'nprogress/nprogress.css';
+import './nprogress-custom.css';
 
 const TrashIcon = () => (
   <svg
@@ -24,41 +27,67 @@ const FileViewer = () => {
 
   useEffect(() => {
 
-    const interval = setInterval(() => {
-      fetchFiles();
-    }, 1000);
+    fetchFiles();
 
-    return () => clearInterval(interval);
+    return;
   }, []);
 
   const fetchFiles = async () => {
+
+    NProgress.start();
+
     const resp = await fetch("/api/assistants/files", {
       method: "GET",
     });
     const data = await resp.json();
     setFiles(data);
+
+    NProgress.done();
   };
 
   const handleFileDelete = async (fileId) => {
-    await fetch("/api/assistants/files", {
-      method: "DELETE",
-      body: JSON.stringify({ fileId}),
-      headers:{
-        'Content-Type':'application/json'
-      },
-    });
+    try {
+      // Deleta o arquivo
+      const response = await fetch("/api/assistants/files", {
+        method: "DELETE",
+        body: JSON.stringify({ fileId }),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+
+      // Verifica se a resposta do fetch foi bem-sucedida
+      if (response.ok) {
+        console.log('Arquivo deletado com sucesso!');
+        setTimeout(fetchFiles, 1000);
+      } else {
+        console.error('Erro ao deletar o arquivo:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Erro na operação de deleção:', error);
+    }
   };
 
+
   const handleFileUpload = async (event) => {
-   
+
     const file = event.target.files[0];
     const maxSize = 20 * 1024 * 1024; // 20 MB em bytes
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    const validExtensions = ['docx', 'xlsx', 'pdf', 'txt', 'pptx'];
 
-    if (file&&file.size > maxSize) {
+    if (!validExtensions.includes(fileExtension)) {
+      setErrorMessage('Arquivo inválido. Permitido apenas: .docx, .xlsx, .pdf, .txt, .pptx');
+      return;
+    }
+
+    if (file && file.size > maxSize) {
       setErrorMessage('O arquivo é muito grande. O tamanho máximo permitido é de 20 MB.');
       return;
     }
-   
+
+    NProgress.start();
+
     const data = new FormData();
     if (event.target.files.length < 0) return;
     data.append("file", event.target.files[0]);
@@ -67,20 +96,21 @@ const FileViewer = () => {
       body: data,
     });
 
+    NProgress.done();
+    fetchFiles();
     setErrorMessage('');
   };
 
   return (
     <div className={styles.fileViewer}>
       <div
-        className={`${styles.filesList} ${
-          files.length !== 0 ? styles.grow : ""
-        }`}
+        className={`${styles.filesList} ${files.length !== 0 ? styles.grow : ""
+          }`}
       >
         {files.length === 0 ? (
           <div className={styles.title}>Anexe os arquivos aqui   <div className={styles.supportedFormats}>
-          Formatos suportados: docx, xlsx, pdf e txt
-        </div> </div>
+            Formatos suportados: docx, xlsx, pdf, txt e pptx
+          </div> </div>
         ) : (
           files.map((file) => (
             <div key={file.file_id} className={styles.fileEntry}>
@@ -106,6 +136,7 @@ const FileViewer = () => {
           className={styles.fileUploadInput}
           multiple
           onChange={handleFileUpload}
+          accept=".docx,.xlsx,.pdf,.txt,.pptx"
         />
       </div>
       {errorMessage && (
@@ -113,7 +144,7 @@ const FileViewer = () => {
           {errorMessage}
         </div>
       )}
-      </div>
+    </div>
   );
 };
 
